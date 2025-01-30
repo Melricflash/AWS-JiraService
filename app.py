@@ -2,6 +2,7 @@ import boto3
 from dotenv import load_dotenv
 import os
 from jira import JIRA
+from flask import Flask
 
 load_dotenv()
 
@@ -15,6 +16,8 @@ JIRA_EMAIL = os.getenv("JIRA_EMAIL")
 JIRA_KEY = os.getenv("JIRA_API_KEY")
 JIRA_PROJ = os.getenv("JIRA_PROJECT_KEY")
 
+app = Flask(__name__)
+
 # Setup SQS client
 sqs = boto3.client('sqs',
                    aws_access_key_id = AWS_ACCESS,
@@ -27,6 +30,10 @@ jiraClient = JIRA(
     server = JIRA_URL,
     basic_auth = (JIRA_EMAIL, JIRA_KEY)
 )
+
+@app.route("/")
+def healthCheck():
+    return "<h1> P2 Service Healthy! </h1>"
 
 def p2JiraPush():
     while True:
@@ -78,4 +85,5 @@ def p2JiraPush():
             print(f"An error occurred: {err}")
 
 
-p2JiraPush()
+if __name__ == '__main__':
+    p2JiraPush()
