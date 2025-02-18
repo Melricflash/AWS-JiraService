@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 from jira import JIRA
 from flask import Flask
+import threading
 
 load_dotenv()
 
@@ -31,12 +32,15 @@ jiraClient = JIRA(
     basic_auth = (JIRA_EMAIL, JIRA_KEY)
 )
 
+stop_flag = False
+
 @app.route("/")
 def healthCheck():
     return "<h1> P2 Service Healthy! </h1>"
 
 def p2JiraPush():
-    while True:
+    global stop_flag
+    while not stop_flag:
         # Fetch the message from the queue
 
         try:
@@ -64,7 +68,7 @@ def p2JiraPush():
 
                 # Create an issue dictionary
                 issueContents = {
-                    "project": {'key': 'IEMELRIC'},
+                    "project": {'key': JIRA_PROJ},
                     "summary": title,
                     "description": description,
                     "issuetype": {'name': 'Task'}, # Task, Epic and Subtask are available!!
@@ -84,6 +88,19 @@ def p2JiraPush():
         except Exception as err:
             print(f"An error occurred: {err}")
 
+def background_thread():
+    sqs_thread = threading.Thread(target=p2JiraPush, daemon=True)
+    sqs_thread.start()
+    return sqs_thread
+
+bg_thread = background_thread()
+
 
 if __name__ == '__main__':
-    p2JiraPush()
+    #p2JiraPush()
+    try:
+        app.run(host="0.0.0.0", port=8000)
+    except KeyboardInterrupt:
+        print("Shutting down...")
+        stop_flag = True
+        bg_thread.join()
