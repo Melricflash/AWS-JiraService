@@ -26,6 +26,13 @@ jobs:
       - name: Run application tests
         env:
           AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_ACCESS_KEY: ${{secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+          JIRA_URL: ${{ secrets.JIRA_URL }}
+          JIRA_EMAIL: ${{ secrets.JIRA_EMAIL}}
+          JIRA_API_KEY: ${{ secrets.JIRA_API_KEY }}
+          JIRA_PROJECT_KEY: ${{ secrets.JIRA_PROJECT_KEY }}
+          p2Queue_URL: ${{ secrets.P2QUEUE_URL}}
         run: |
           pytest --disable-warnings
 
